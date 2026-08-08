@@ -148,6 +148,13 @@ are about persistence rather than UI. `changeMedication` is the example of
 operation, rather than leaving a form component to call `stop()` + `add()`
 separately.
 
+## Deferred polish (backlog, not v1-blocking)
+
+- **Custom calendar date picker** for the medication form's Start date field,
+  instead of the native `<input type="date">`. Native input works and is
+  accessible today; a custom picker is a "make it cuter" visual upgrade to
+  revisit later, not a functional gap.
+
 ## Open decisions log
 
 All resolved. Repo is on GitHub at github.com/LucasDolabella/vivaline.
