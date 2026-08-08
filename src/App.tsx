@@ -5,6 +5,7 @@ import { NoteForm } from './components/NoteForm'
 import { BottomTabBar } from './components/BottomTabBar'
 import { AddChoiceSheet } from './components/AddChoiceSheet'
 import { Modal } from './components/Modal'
+import { TimelineView } from './components/TimelineView'
 import { ProfileIcon, SummaryIcon, TimelineIcon } from './components/icons'
 
 type TabId = 'summary' | 'timeline' | 'profile'
@@ -45,36 +46,27 @@ const TABS: { id: TabId; label: string; icon: (active: boolean) => React.ReactNo
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>('timeline')
   const [addFlow, setAddFlow] = useState<AddFlow>('closed')
-  const [savedMessage, setSavedMessage] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
 
   async function handleAddMedication(medication: NewMedication, close: () => void) {
     await medicationRepository.add(medication)
-    setSavedMessage(`Saved "${medication.name}."`)
+    setRefreshKey((key) => key + 1)
     close()
   }
 
   async function handleAddNote(note: NewNote, close: () => void) {
     await noteRepository.add(note)
-    setSavedMessage('Note saved.')
+    setRefreshKey((key) => key + 1)
     close()
   }
 
   return (
-    <main className="min-h-svh bg-bg pb-24">
-      <div className="mx-auto max-w-sm px-6 py-8">
+    <main className="flex h-svh flex-col bg-bg pb-24">
+      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col overflow-hidden px-6 py-6">
         {activeTab === 'summary' && (
           <p className="text-center text-ink-muted">Summary view coming soon.</p>
         )}
-        {activeTab === 'timeline' && (
-          <div className="flex flex-col gap-4 text-center">
-            <p className="text-ink-muted">Timeline view coming soon.</p>
-            {savedMessage && (
-              <p role="status" className="text-brand-strong">
-                {savedMessage}
-              </p>
-            )}
-          </div>
-        )}
+        {activeTab === 'timeline' && <TimelineView refreshKey={refreshKey} />}
         {activeTab === 'profile' && (
           <p className="text-center text-ink-muted">Profile view coming soon.</p>
         )}

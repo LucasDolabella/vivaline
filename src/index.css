@@ -82,3 +82,19 @@ body {
 #root {
   min-height: 100svh;
 }
+
+/* Fades the top/bottom edges of the timeline scroller as a scroll hint. */
+.timeline-fade {
+  mask-image: linear-gradient(to bottom, transparent, black 6%, black 94%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 6%, black 94%, transparent);
+}
+
+/* Custom-drawn scroll areas (the timeline spine, the detail panel) shouldn't
+   show the OS/browser's generic scrollbar chrome — still scrolls normally. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

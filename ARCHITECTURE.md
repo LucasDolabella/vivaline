@@ -65,31 +65,41 @@ Two renderers over the same underlying data — not one visualization trying to
 serve every context.
 
 ### Detail view (default, on-screen)
-- Vertical scroll, chronological.
-- Left gutter: one thin colored+patterned **lane** per medication (like a git
-  commit graph rotated for time), running from its start point down to its
-  stop point, or to a "today" marker if still active.
-- Right of the gutter: a chronological feed of cards — medication started /
-  stopped / changed, and notes — as distinct card types in the same feed, so a
-  note next to a medication-start card makes the correlation visible without
-  extra effort.
-- Cards reveal as the user scrolls to them (subtle, not gimmicky).
+
+Not a single scrolling feed — **two independent panels side by side**,
+because "show me the shape of my whole history" and "show me what happened on
+one day" turned out to be different jobs that fight each other in one view:
+
+- **`TimelineSpine`** (left, narrow) — a scrollable column of dots-and-lines
+  only, no card content. One "page" per date, sized to fill the spine's own
+  height, with `scroll-snap` so scrolling always settles cleanly on exactly
+  one date. Tracks scroll position (closest-row-to-center, recalculated on
+  scroll) to know which date is "active," and reports that up. Tapping a dot
+  also jumps to it directly (`scrollIntoView`).
+- **`TimelineDetailPanel`** (right, fills remaining width) — non-scrolling,
+  shows *only* the active date's cards. When the active date changes, current
+  cards fade+slide out, content swaps, new cards fade+slide in (~200ms each
+  way) — never two dates' cards visible at once.
+- **`TimelineGutter`** — the actual lane/dot/line rendering, shared by every
+  row in the spine. One colored **lane** per medication (like a git commit
+  graph rotated for time): a continuous line through dates it's active,
+  capped with a dot exactly where it starts or stops. A hollow ring (instead
+  of a solid dot) marks a medication reaching "today" while still active, so
+  an ongoing line doesn't just dangle with no explanation.
+- **Oldest-first**: scrolling down moves forward through history toward
+  today, like reading a story. The view opens already scrolled to today.
+- **Tap a lane to jump to its start**: tapping anywhere along a specific
+  medication's line jumps the spine straight to the date it started — this
+  is also the answer to "color shouldn't be the only way to identify a
+  medication": tapping any lane immediately shows you, by name, what it is.
+- **Lane density cap**: below ~5 concurrent lanes, each renders individually.
+  Above that, the gutter collapses into a single numbered band for that date;
+  tapping it opens a small popover listing the active medications by name.
+  Nothing is ever hidden from the data — collapsing only affects the
+  always-visible line rendering.
 - Overlaps are handled by lane assignment, not zoom — no pinch-to-zoom
   gesture required anywhere in the app (deliberately avoided given the likely
   elderly user base).
-- **Lane density cap:** lanes are assigned per medication based on what's
-  concurrently active at a given scroll position (not total lifetime med
-  count). Below ~4-5 concurrent lanes, render them individually as
-  colored+patterned lines. Above that threshold, collapse the gutter at that
-  point into a single "N active" band instead of N thin lines; tapping it
-  reveals exactly what's active there. The card feed is always the full
-  source of truth regardless of how the gutter renders — collapsing only
-  affects the persistent line visual, never hides an event.
-- **Lane filter:** an optional "show lanes for: ___" control lets a user
-  isolate specific medications' lanes against a quiet timeline — useful for a
-  doctor checking one specific correlation without 8 colors competing for
-  attention. This matters more as concurrent count grows, i.e. exactly the
-  polypharmacy case the density cap above is guarding against.
 
 ### Overview view (the Summary tab, and reused for print/share)
 - Compact, whole-history-at-a-glance, non-interactive rendering.
@@ -190,6 +200,17 @@ separately.
   compose into that same string before saving, so this is a `MedicationForm`
   change only, no repository or model changes, no migration for existing
   stored data.
+- **Tap-to-expand card detail view**: tapping a `TimelineCard` opens it
+  full-screen/centered with more info and a delete button at the bottom,
+  rather than (or alongside) the current corner delete bubble. Natural place
+  to eventually add edit/stop-medication actions too, since a corner bubble
+  doesn't scale to multiple actions.
+- **Spine navigation at scale**: with years of history, one-full-page-per-date
+  in `TimelineSpine` means scrolling through many pages just to get anywhere.
+  A compressed mini-map/scrubber alongside the spine — tap or drag to jump —
+  is the likely fix, complementing the detailed one-at-a-time view rather
+  than replacing it. The planned Summary tab (whole-history-at-a-glance) is
+  the other half of the answer here, so revisit this after that exists.
 
 ## Open decisions log
 

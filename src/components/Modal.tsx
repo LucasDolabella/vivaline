@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 const EXIT_DURATION_MS = 250
 
@@ -34,7 +35,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  return (
+  return createPortal(
     <div
       className={`fixed inset-0 z-50 flex items-end justify-center bg-ink/40 transition-opacity duration-200 sm:items-center ${
         visible ? 'opacity-100' : 'opacity-0'
@@ -67,6 +68,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
         </div>
         {typeof children === 'function' ? children(requestClose) : children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
