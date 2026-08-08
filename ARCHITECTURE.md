@@ -91,12 +91,40 @@ serve every context.
   attention. This matters more as concurrent count grows, i.e. exactly the
   polypharmacy case the density cap above is guarding against.
 
-### Overview view (toggle, and reused for print/share)
+### Overview view (the Summary tab, and reused for print/share)
 - Compact, whole-history-at-a-glance, non-interactive rendering.
 - No scroll-reveal — everything visible at once, more like a Gantt chart.
-- Same component powers both the on-screen "zoom out" toggle and the
-  shareable/printable summary (spec feature 5) — one renderer, two output
-  contexts (screen vs. exported image), rather than a third bespoke layout.
+- Lives on its own **Summary tab** rather than a toggle buried inside the
+  Timeline screen — more discoverable for a doctor or caregiver, and keeps
+  "one primary task per screen."
+- Same component renders both that on-screen tab and the shareable/printable
+  summary (spec feature 5) — one renderer, two output contexts. Printing uses
+  a `@media print` stylesheet so the browser's native print dialog handles
+  export — no extra library needed for v1.
+- Includes a patient info header (display name, sourced from Profile) above
+  the medication/notes rendering.
+
+## Navigation
+
+Bottom tab bar, Timeline visually elevated as the center/primary tab (bigger,
+not a plain square) — reflects "the timeline is the star of the app." Built
+as a simple, extensible list of tabs, not hardcoded to a fixed count, since
+the tab set is expected to grow (see roadmap below).
+
+**v1 — 3 tabs:**
+- **Summary** (left) — the Overview view above.
+- **Timeline** (center, large) — the Detail view. Has a **"+"** button that
+  opens a two-option choice: add a medication or add a note. One decision,
+  then a single-purpose form — no separate "add" tab needed.
+- **Profile** (right) — deliberately minimal for v1: patient display name
+  (used on the Summary header) plus a small data-management section (e.g.
+  clear all data). No accounts, so this isn't a login-based profile.
+
+**Planned evolution — 5 tabs:** Home, Summary, Timeline (center), Profile,
+Settings. At that point Profile's data-management section splits out into
+its own Settings tab. "Home" isn't scoped yet — likely a quick-glance
+dashboard (e.g. current medication count, most recent note) — to be defined
+when we build it.
 
 ## Data layer (implemented)
 
@@ -154,6 +182,14 @@ separately.
   instead of the native `<input type="date">`. Native input works and is
   accessible today; a custom picker is a "make it cuter" visual upgrade to
   revisit later, not a functional gap.
+- **Structured dose/frequency inputs**, replacing the current free-text
+  fields with friendlier pickers: dose as a number + unit dropdown (mg, g,
+  mcg, mL, IU, "other"), frequency as a common-patterns picker (Once daily,
+  Twice daily, Every 8 hours, As needed, "Other — describe"). Both `dose` and
+  `frequency` stay plain strings in the data model — these pickers just
+  compose into that same string before saving, so this is a `MedicationForm`
+  change only, no repository or model changes, no migration for existing
+  stored data.
 
 ## Open decisions log
 
