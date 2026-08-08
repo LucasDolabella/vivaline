@@ -98,7 +98,24 @@ serve every context.
   shareable/printable summary (spec feature 5) — one renderer, two output
   contexts (screen vs. exported image), rather than a third bespoke layout.
 
-## Data model (draft — not yet finalized)
+## Data layer (implemented)
+
+`src/data/` is the whole data layer — no file in it imports from `react`.
+
+```
+src/data/
+├── models/            — Medication, Note, and shared types (IsoDate)
+├── repositories/       — MedicationRepository / NoteRepository interfaces (the contract)
+├── storage/
+│   ├── db.ts                          — idb setup: object stores, keyed by id
+│   ├── IndexedDbMedicationRepository.ts
+│   └── IndexedDbNoteRepository.ts
+└── index.ts            — the only import path for components: exports
+                          `medicationRepository` / `noteRepository`, typed
+                          as the interfaces (not the concrete classes)
+```
+
+### Data model
 
 ```
 Medication
@@ -107,17 +124,29 @@ Medication
   dose
   frequency
   startDate
-  endDate?            // absent/null = still active
+  endDate?              // absent = still active
   prescribingDoctor?
   reason?
-  stopReason?         // side effect / course completed / ineffective / doctor discontinued / other
-  linkedFromId?        // set when this entry represents a "change" from a prior entry
+  stopReason?           // 'side-effect' | 'course-completed' | 'ineffective' | 'doctor-discontinued' | 'other'
+  stopReasonDetail?      // free text, mainly for 'other'
+  changedFromId?         // set when this entry represents a "change" from a prior entry
 
 Note
   id
   text
   date
+  createdAt             // full timestamp, tie-breaker for notes sharing a date
 ```
+
+### Repository responsibilities
+
+A repository (1) translates domain calls into storage calls — nothing outside
+`src/data/storage/` may import `idb` directly, (2) generates ids and owns
+storage-level invariants, and (3) owns multi-record domain operations that
+are about persistence rather than UI. `changeMedication` is the example of
+(3): it stops the old record and creates a new linked one as a single
+operation, rather than leaving a form component to call `stop()` + `add()`
+separately.
 
 ## Open decisions log
 

@@ -1,0 +1,1 @@
+export type IsoDate = string // YYYY-MM-DD
